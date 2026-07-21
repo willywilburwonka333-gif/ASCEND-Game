@@ -8,39 +8,74 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>ASCEND — Project Kayla</title>
   <style>
-    html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#8ee7ff,#dff8df 62%,#79d16e);font-family:Arial,sans-serif}
-    #ascend-emergency{position:fixed;inset:0;z-index:999999;display:grid;place-items:center;padding:18px;background:linear-gradient(180deg,#8ee7ff,#dff8df 62%,#79d16e);color:#17324d}
-    #ascend-emergency[hidden]{display:none!important}.ae-card{width:min(560px,100%);box-sizing:border-box;background:#fff8df;border:7px solid #fff;border-radius:28px;padding:22px;text-align:center;box-shadow:0 20px 55px #17324d33}.ae-card h1{margin:0 0 8px;color:#6b4cc5;font-size:38px}.ae-spinner{width:52px;height:52px;margin:16px auto;border:7px solid #d9d0ff;border-top-color:#6b4cc5;border-radius:50%;animation:spin .8s linear infinite}.ae-actions{display:grid;gap:10px;margin-top:18px}.ae-actions button{min-height:56px;border:4px solid #fff;border-radius:16px;padding:12px 16px;font-weight:900;font-size:16px}.ae-retry{background:#6b4cc5;color:#fff}.ae-opening{background:#73d8bd}.ae-home{background:#ffca57}.ae-reset{background:#eef7ff}.ae-status{font-size:13px;color:#526f80;margin-top:12px}@keyframes spin{to{transform:rotate(360deg)}}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;color:#17324d;background:linear-gradient(180deg,#8ee7ff 0%,#dff8df 62%,#79d16e 100%)}
+    button{font:inherit;touch-action:manipulation;cursor:pointer}
+    #home{min-height:100vh;padding:calc(18px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom));display:grid;place-items:center}
+    .shell{width:min(980px,100%)}
+    .card{background:#fff8df;border:7px solid #fff;border-radius:30px;padding:22px;box-shadow:0 18px 50px rgba(23,50,77,.2)}
+    h1{margin:0;color:#6b4cc5;font-size:clamp(44px,10vw,76px);line-height:1;text-align:center}
+    .tag{text-align:center;font-size:18px;line-height:1.45;margin:14px auto 18px;max-width:760px}
+    .profile{padding:11px 14px;border-radius:14px;background:#eef7ff;font-weight:800;text-align:center;margin-bottom:16px}
+    .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .btn{min-height:64px;border:5px solid #fff;border-radius:19px;padding:13px;font-weight:900;font-size:17px;box-shadow:0 7px 18px rgba(23,50,77,.12)}
+    .play{background:#ffca57}.world{background:#8d72e8;color:#fff}.opening{background:#73d8bd}.adult{background:#17324d;color:#fff}
+    .status{margin-top:14px;padding:12px 14px;border-radius:14px;background:#eef7ff;font-weight:800;min-height:46px}
+    .panel{display:none;margin-top:18px}.panel.open{display:block}
+    .map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .country{border:5px solid #fff;border-radius:22px;padding:16px;text-align:left;background:#fff;box-shadow:0 8px 22px rgba(23,50,77,.12)}
+    .country h3{margin:0 0 5px;font-size:22px}.country small{display:block;margin-top:8px;color:#527080;line-height:1.35}
+    .country.selected{outline:5px solid #ffca57;background:#fff2bd}
+    .close{margin-top:12px;width:100%;background:#eef7ff}
+    .notice{margin-top:16px;font-size:13px;color:#526f80;text-align:center}
+    @media(max-width:680px){.actions,.map{grid-template-columns:1fr}.card{padding:16px;border-radius:24px}.btn{min-height:59px}h1{font-size:48px}}
   </style>
 </head>
 <body>
-  <main id="app" aria-label="ASCEND game"></main>
-  <section id="ascend-emergency">
-    <div class="ae-card">
-      <h1>ASCEND</h1>
-      <p class="ae-message">Loading the safe game home…</p>
-      <div class="ae-spinner"></div>
-      <div class="ae-actions" hidden>
-        <button class="ae-retry">TRY AGAIN</button>
-        <button class="ae-opening">CONTINUE THE OPENING</button>
-        <button class="ae-home">OPEN GAME HOME</button>
-        <button class="ae-reset">RESTART TUTORIAL ONLY</button>
+  <main id="home">
+    <section class="shell">
+      <div class="card">
+        <h1>ASCEND</h1>
+        <p class="tag">Explore five countries, collect and evolve 110 monsters, complete missions and turn school knowledge into real game power.</p>
+        <div class="profile" id="profile">Loading saved adventure…</div>
+        <div class="actions">
+          <button class="btn play" id="explore">🧭 EXPLORE</button>
+          <button class="btn world" id="world">🗺️ FIVE-COUNTRY MAP</button>
+          <button class="btn opening" id="opening">🥚 START / CONTINUE OPENING</button>
+          <button class="btn adult" id="adult">🔒 PARENTS / TEACHERS</button>
+        </div>
+        <div class="status" id="status">The safe home is ready.</div>
+        <section class="panel" id="mapPanel">
+          <div class="map" id="map"></div>
+          <button class="btn close" id="closeMap">CLOSE MAP</button>
+        </section>
+        <p class="notice">This safe home is self-contained. The rest of the game loads only after you choose an area.</p>
       </div>
-      <div class="ae-status">Your collection and adult assignments will not be deleted.</div>
-    </div>
-  </section>
+    </section>
+  </main>
   <script>
     (function(){
-      var KEY='ascend_project_kayla_v4',screen=document.getElementById('ascend-emergency');
+      var KEY='ascend_project_kayla_v4';
+      var countries=[
+        {id:'verdara',icon:'🌿',name:'Verdara',tag:'The Living Canopy',focus:'Science, English and wellbeing'},
+        {id:'solara',icon:'☀️',name:'Solara',tag:'The Sunstone Coast',focus:'Mathematics, humanities and art'},
+        {id:'mizuno',icon:'🌊',name:'Mizuno',tag:'The River of Seasons',focus:'Technology, poetry and science'},
+        {id:'amaru',icon:'⛰️',name:'Amaru',tag:'The Mountain Thread',focus:'Mathematics, history and art'},
+        {id:'aurora',icon:'❄️',name:'Aurora Reach',tag:'The Northern Lights',focus:'Science, navigation and safety'}
+      ];
       function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}}
       function save(p){try{localStorage.setItem(KEY,JSON.stringify(p))}catch(e){}}
-      screen.querySelector('.ae-retry').onclick=function(){location.reload()};
-      screen.querySelector('.ae-opening').onclick=function(){var p=load();p.onboardingComplete=true;p.diagnosticComplete=false;p.openingAdventure=Object.assign({},p.openingAdventure||{},{completed:false});save(p);location.reload()};
-      screen.querySelector('.ae-home').onclick=function(){screen.hidden=true;if(window.ASCEND_STABLE_HOME)window.ASCEND_STABLE_HOME.show()};
-      screen.querySelector('.ae-reset').onclick=function(){var p=load();p.onboardingComplete=false;p.diagnosticComplete=false;p.diagnosticIndex=0;delete p.openingAdventure;save(p);location.reload()};
-      setTimeout(function(){if(!window.ASCEND_BOOT){screen.querySelector('.ae-message').textContent='The boot manager did not start. Try again after Vercel finishes deploying.';screen.querySelector('.ae-spinner').style.display='none';screen.querySelector('.ae-actions').hidden=false}},5000);
+      var profileEl=document.getElementById('profile'),status=document.getElementById('status'),panel=document.getElementById('mapPanel'),grid=document.getElementById('map');
+      function refresh(){var p=load(),count=(p.collection&&p.collection.creatures&&p.collection.creatures.length)||0;profileEl.textContent=(p.companion||'New learner')+' · Year '+(p.schoolYear||'not chosen')+' · Level '+(p.level||1)+' · '+count+'/110 monsters collected';var selected=p.world&&p.world.currentCountry;Array.prototype.forEach.call(grid.querySelectorAll('[data-country]'),function(b){b.classList.toggle('selected',b.dataset.country===selected)})}
+      grid.innerHTML=countries.map(function(c){return '<button class="country" data-country="'+c.id+'"><h3>'+c.icon+' '+c.name+'</h3><b>'+c.tag+'</b><small>'+c.focus+'</small></button>'}).join('');
+      document.getElementById('world').onclick=function(){panel.classList.add('open');status.textContent='Choose a country to make it your current region.'};
+      document.getElementById('closeMap').onclick=function(){panel.classList.remove('open');status.textContent='Map closed.'};
+      grid.onclick=function(e){var b=e.target.closest('[data-country]');if(!b)return;var p=load();p.world=Object.assign({},p.world||{},{currentCountry:b.dataset.country});save(p);var c=countries.find(function(x){return x.id===b.dataset.country});status.textContent=c.name+' selected. Tap Explore when the regional engine is ready.';refresh()};
+      document.getElementById('opening').onclick=function(){var p=load();p.onboardingComplete=false;p.diagnosticComplete=false;p.diagnosticIndex=0;delete p.openingAdventure;save(p);status.textContent='Opening reset safely. The full egg creator will be reconnected next without risking this home.'};
+      document.getElementById('explore').onclick=function(){var p=load(),id=(p.world&&p.world.currentCountry)||'verdara',c=countries.find(function(x){return x.id===id});status.textContent=c.name+' is selected. The regional game module is temporarily isolated while startup is repaired; your selection is saved.'};
+      document.getElementById('adult').onclick=function(){status.textContent='Parent and teacher data remains saved. The Adult Hub is temporarily isolated while startup is repaired.'};
+      refresh();
+      window.ASCEND_SAFE_HOME={refresh:refresh};
     })();
   </script>
-  <script type="module" src="/src/boot-manager.js"></script>
 </body>
 </html>
