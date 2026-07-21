@@ -8,9 +8,49 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>ASCEND — Project Kayla</title>
+    <style>
+      html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#8ee7ff,#dff8df 62%,#79d16e);font-family:Arial,sans-serif}
+      #ascend-emergency{position:fixed;inset:0;z-index:999999;display:grid;place-items:center;padding:calc(18px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));background:linear-gradient(180deg,#8ee7ff,#dff8df 62%,#79d16e);color:#17324d}
+      #ascend-emergency[hidden]{display:none!important}
+      .ae-card{width:min(560px,100%);box-sizing:border-box;background:#fff8df;border:7px solid #fff;border-radius:28px;padding:22px;text-align:center;box-shadow:0 20px 55px rgba(23,50,77,.2)}
+      .ae-card h1{margin:0 0 8px;color:#6b4cc5;font-size:36px}.ae-card p{line-height:1.45}.ae-actions{display:grid;gap:10px;margin-top:18px}.ae-actions button{min-height:56px;border:4px solid #fff;border-radius:16px;padding:12px 16px;font-weight:900;font-size:16px;touch-action:manipulation}.ae-retry{background:#6b4cc5;color:#fff}.ae-opening{background:#73d8bd;color:#17324d}.ae-reset{background:#eef7ff;color:#17324d}.ae-status{font-size:13px;color:#526f80;margin-top:12px}
+    </style>
   </head>
   <body>
     <main id="app" aria-label="ASCEND game"></main>
+    <section id="ascend-emergency">
+      <div class="ae-card">
+        <h1>ASCEND</h1>
+        <p class="ae-message">Loading your adventure…</p>
+        <div class="ae-actions" hidden>
+          <button class="ae-retry">TRY AGAIN</button>
+          <button class="ae-opening">CONTINUE THE OPENING</button>
+          <button class="ae-reset">RESTART TUTORIAL ONLY</button>
+        </div>
+        <div class="ae-status">Your collection and adult assignments will not be deleted.</div>
+      </div>
+    </section>
+    <script>
+      (function(){
+        var KEY='ascend_project_kayla_v4';
+        var screen=document.getElementById('ascend-emergency');
+        var message=screen.querySelector('.ae-message');
+        var actions=screen.querySelector('.ae-actions');
+        var failed=false;
+        function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}}
+        function save(p){try{localStorage.setItem(KEY,JSON.stringify(p))}catch(e){}}
+        function visible(el){if(!el)return false;var s=getComputedStyle(el),r=el.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>20&&r.height>20}
+        function gameVisible(){return Array.prototype.some.call(document.querySelectorAll('#app canvas,#ascend-onboarding-v3.open,#ascend-opening-adventure.open,#ascend-region.open,#ascend-world-overlay.open,#ascend-adventure-overlay.open,#ascend-adult-overlay.open'),visible)}
+        function revealFailure(text){failed=true;message.textContent=text||'ASCEND could not finish loading. Choose a safe recovery option.';actions.hidden=false;screen.hidden=false}
+        window.addEventListener('error',function(e){revealFailure('A game file failed to load. Use Try Again after the new deployment finishes.');console.error(e.error||e.message)});
+        window.addEventListener('unhandledrejection',function(e){revealFailure('A startup action failed. Your saved data is still safe.');console.error(e.reason)});
+        screen.querySelector('.ae-retry').onclick=function(){location.reload()};
+        screen.querySelector('.ae-opening').onclick=function(){var p=load();p.onboardingComplete=true;p.diagnosticComplete=false;p.diagnosticIndex=Number(p.diagnosticIndex||0);p.openingAdventure=Object.assign({},p.openingAdventure||{},{completed:false,step:Number((p.openingAdventure||{}).step||0)});save(p);location.reload()};
+        screen.querySelector('.ae-reset').onclick=function(){var p=load();p.onboardingComplete=false;p.diagnosticComplete=false;p.diagnosticIndex=0;delete p.openingAdventure;save(p);location.reload()};
+        setTimeout(function(){if(gameVisible()){screen.hidden=true}else{revealFailure('The game did not render. Choose Continue the Opening to repair the saved screen state.')}},3500);
+        setInterval(function(){if(!failed&&gameVisible())screen.hidden=true},500);
+      })();
+    </script>
     <script type="module" src="/src/mobile-shell.js"></script>
     <script type="module" src="/src/collection-bootstrap.js"></script>
     <script type="module" src="/src/v4.js"></script>
@@ -25,6 +65,5 @@
     <script type="module" src="/src/learning-support.js"></script>
     <script type="module" src="/src/adult-portals.js"></script>
     <script type="module" src="/src/runtime-audit.js"></script>
-    <script type="module" src="/src/startup-recovery.js"></script>
   </body>
 </html>
