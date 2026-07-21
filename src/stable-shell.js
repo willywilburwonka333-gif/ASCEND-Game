@@ -1,0 +1,26 @@
+const KEY='ascend_project_kayla_v4';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}};
+const save=p=>localStorage.setItem(KEY,JSON.stringify(p));
+const countries=[
+{id:'verdara',icon:'🌿',name:'Verdara',tag:'The Living Canopy',focus:'Science, English and wellbeing'},
+{id:'solara',icon:'☀️',name:'Solara',tag:'The Sunstone Coast',focus:'Mathematics, humanities and art'},
+{id:'mizuno',icon:'🌊',name:'Mizuno',tag:'The River of Seasons',focus:'Technology, poetry and science'},
+{id:'amaru',icon:'⛰️',name:'Amaru',tag:'The Mountain Thread',focus:'Mathematics, history and art'},
+{id:'aurora',icon:'❄️',name:'Aurora Reach',tag:'The Northern Lights',focus:'Science, navigation and safety'}
+];
+const css=document.createElement('style');css.textContent=`
+#ascend-stable-home{position:fixed;inset:0;z-index:120000;overflow:auto;background:linear-gradient(180deg,#8ee7ff,#dff8df 62%,#79d16e);font-family:Nunito,Arial;color:#17324d;padding:calc(18px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom))}
+.ash-shell{width:min(1000px,100%);margin:auto}.ash-hero{background:#fff8df;border:7px solid #fff;border-radius:30px;padding:22px;box-shadow:0 18px 50px #17324d2b}.ash-title{font:900 clamp(38px,8vw,72px) 'Baloo 2',Arial;color:#6b4cc5;margin:0}.ash-sub{font-size:18px;line-height:1.45}.ash-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.ash-btn{min-height:62px;border:5px solid #fff;border-radius:18px;padding:13px;font:900 17px Nunito;box-shadow:0 7px 18px #17324d1f;touch-action:manipulation}.ash-play{background:#ffca57}.ash-world{background:#8d72e8;color:#fff}.ash-adult{background:#17324d;color:#fff}.ash-opening{background:#73d8bd}.ash-map{display:none;margin-top:18px}.ash-map.open{display:block}.ash-map-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ash-country{background:#fff;border:5px solid #fff;border-radius:22px;padding:16px;text-align:left;box-shadow:0 8px 22px #17324d1d}.ash-country h3{margin:0 0 4px;font-size:22px}.ash-country small{display:block;margin-top:8px;color:#527080}.ash-close{margin-top:12px;background:#eef7ff}.ash-status{margin-top:14px;padding:11px 13px;border-radius:14px;background:#eef7ff;font-weight:800}
+@media(max-width:680px){.ash-actions,.ash-map-grid{grid-template-columns:1fr}.ash-hero{padding:16px;border-radius:24px}.ash-btn{min-height:58px}}
+`;document.head.appendChild(css);
+const root=document.createElement('section');root.id='ascend-stable-home';root.innerHTML=`<div class="ash-shell"><div class="ash-hero"><h1 class="ash-title">ASCEND</h1><p class="ash-sub">Explore five countries, collect and evolve monsters, complete missions and turn school knowledge into real game power.</p><div class="ash-actions"><button class="ash-btn ash-play">🧭 EXPLORE</button><button class="ash-btn ash-world">🗺️ FIVE-COUNTRY MAP</button><button class="ash-btn ash-opening">🥚 CONTINUE OPENING</button><button class="ash-btn ash-adult">🔒 PARENTS / TEACHERS</button></div><div class="ash-status"></div><div class="ash-map"><div class="ash-map-grid"></div><button class="ash-btn ash-close">CLOSE MAP</button></div></div></div>`;document.body.appendChild(root);
+const status=root.querySelector('.ash-status');
+function refresh(){const p=load();status.textContent=`${p.companion||'New learner'} · Year ${p.schoolYear||'not chosen'} · Level ${p.level||1} · ${p.collection?.creatures?.length||0}/110 monsters collected`;}
+function clickById(id){const el=document.getElementById(id);if(el){el.click();return true}return false}
+root.querySelector('.ash-play').onclick=()=>{if(clickById('ascend-region-button'))root.style.display='none';else status.textContent='Explore is still loading. The home screen remains available.'};
+root.querySelector('.ash-opening').onclick=()=>{const p=load();p.onboardingComplete=true;p.diagnosticComplete=false;p.openingAdventure={...(p.openingAdventure||{}),completed:false,step:Number(p.openingAdventure?.step||0)};save(p);location.reload()};
+root.querySelector('.ash-adult').onclick=()=>{if(clickById('ascend-adult-launcher'))root.style.display='none';else status.textContent='Adult Hub is still loading. Try again in a moment.'};
+const map=root.querySelector('.ash-map'),grid=root.querySelector('.ash-map-grid');grid.innerHTML=countries.map(c=>`<button class="ash-country" data-country="${c.id}"><h3>${c.icon} ${c.name}</h3><b>${c.tag}</b><small>${c.focus}</small></button>`).join('');
+root.querySelector('.ash-world').onclick=()=>map.classList.add('open');root.querySelector('.ash-close').onclick=()=>map.classList.remove('open');
+grid.onclick=e=>{const b=e.target.closest('[data-country]');if(!b)return;const p=load();p.world={...(p.world||{}),currentCountry:b.dataset.country};save(p);status.textContent=`${countries.find(c=>c.id===b.dataset.country).name} selected. Tap Explore to enter.`;map.classList.remove('open');window.dispatchEvent(new CustomEvent('ascend-country-changed',{detail:{countryId:b.dataset.country}}));};
+refresh();window.ASCEND_STABLE_HOME={show:()=>root.style.display='block',hide:()=>root.style.display='none',refresh};
