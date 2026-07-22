@@ -11,28 +11,18 @@
     <style>
       html,body,#app{margin:0;width:100%;height:100%;min-height:100dvh;overflow:hidden;background:linear-gradient(180deg,#8ee7ff,#dff8df 62%,#79d16e)}
       #ascend-rotate-note,#ascend-mobile-bar{display:none!important}
-      body.egg-opening-active #app,body.egg-opening-active #ascend-region-button,body.egg-opening-active #ascend-region,body.egg-opening-active #ascend-hatchery-button{visibility:hidden!important;pointer-events:none!important}
     </style>
   </head>
   <body>
     <main id="app" aria-label="ASCEND game"></main>
-    <script>
-      try {
-        const key='ascend_project_kayla_v4';
-        const p=JSON.parse(localStorage.getItem(key)||'{}');
-        delete p.safeHomeOnly;
-        delete p.bootRecovery;
-        localStorage.setItem(key,JSON.stringify(p));
-      } catch (_) {}
-    </script>
-    <script type="module" src="/src/collection-bootstrap.js?v=incubator-v2"></script>
-    <script type="module" src="/src/v4.js?v=incubator-v2"></script>
-    <script type="module" src="/src/input-hotfix.js?v=incubator-v2"></script>
-    <script type="module" src="/src/mobile-input-v2.js?v=incubator-v2"></script>
-    <script type="module" src="/src/world-expansion.js?v=incubator-v2"></script>
-    <script type="module" src="/src/living-world.js?v=incubator-v2"></script>
-    <script type="module" src="/src/region-adventure-v4.js?v=incubator-v2"></script>
-    <script type="module" src="/src/egg-incubator-opening.js?v=incubator-v2"></script>
-    <script type="module" src="/src/region-v4-router.js?v=incubator-v2"></script>
+    <script type="module" src="/src/collection-bootstrap.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/v4.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/input-hotfix.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/mobile-input-v2.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/world-expansion.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/living-world.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/region-adventure-v4.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/rpg-opening-v1.js?v=rpg-opening-1"></script>
+    <script type="module" src="/src/region-v4-router.js?v=rpg-opening-1"></script>
   </body>
 </html>
