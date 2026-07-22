@@ -3,9 +3,10 @@ const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{ret
 
 function routeToNewRegion(){
   const p=load();
+  const opening=document.getElementById('egg-opening');
   const onboardingOpen=document.querySelector('#ascend-onboarding-v3.open');
   const questionModal=[...document.querySelectorAll('canvas')].some(c=>c.offsetWidth>0&&c.offsetHeight>0)&&document.body.classList.contains('ao3-open');
-  if(onboardingOpen||questionModal||!p.onboardingComplete||!p.diagnosticComplete)return;
+  if(opening||onboardingOpen||questionModal||!p.eggOpeningComplete)return;
   const button=document.getElementById('ascend-region-button');
   const region=document.getElementById('ascend-region');
   if(!button||!region)return;
