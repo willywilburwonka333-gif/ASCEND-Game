@@ -1,0 +1,49 @@
+const SAVE_KEY='ascend_verdara_chapter_v2';
+const V5_KEY='ascend_verdara_v5_progress';
+const app=document.getElementById('app');
+
+const style=document.createElement('style');
+style.textContent=`
+.v5-tools{position:absolute;z-index:23;top:248px;right:8px;display:grid;gap:6px}.v5-tools button{border:4px solid #fff;border-radius:12px;background:#315d75dd;color:#fff;padding:8px 10px;font-weight:900}.interiorMap{position:relative;height:300px;border:5px solid #fff;border-radius:18px;overflow:hidden;background:#d9c695}.interiorFloor{position:absolute;inset:0;background:repeating-linear-gradient(90deg,#d8bd82 0 34px,#cdaa6c 34px 38px)}.interiorWall{position:absolute;background:#fff3d4;border:5px solid #fff;border-radius:12px}.interiorObject{position:absolute;transform:translate(-50%,-50%);font-size:32px;text-align:center;font-weight:900}.interiorObject small{display:block;font-size:12px;background:#17324ddd;color:#fff;border-radius:999px;padding:3px 7px}.sideQuest{padding:10px;border-radius:13px;background:#eef7ff;margin:7px 0;text-align:left}.sideQuest.complete{background:#dff6df}.dexGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.dexCard{padding:10px;border-radius:13px;background:#eef7ff;text-align:left}.companionPanel{display:grid;grid-template-columns:80px 1fr;gap:12px;align-items:center;text-align:left;background:#eef7ff;border-radius:15px;padding:12px}.companionIcon{font-size:58px;text-align:center}.v5-toast{position:absolute;z-index:60;left:50%;top:175px;transform:translateX(-50%);background:#17324de8;color:#fff;border:4px solid #fff;border-radius:12px;padding:8px 12px;font-weight:900;display:none}.v5-toast.show{display:block}.v5-tag{position:fixed;z-index:999998;left:8px;bottom:36px;background:#315d75;color:#fff;border:3px solid #fff;border-radius:999px;padding:5px 9px;font:800 10px system-ui;pointer-events:none}@media(max-width:600px){.v5-tools{top:238px}.v5-tools button{font-size:10px;padding:6px}.interiorMap{height:260px}.dexGrid{grid-template-columns:1fr}}
+`;
+document.head.appendChild(style);
+const tag=document.createElement('div');tag.className='v5-tag';tag.textContent='V5 · INTERIORS + SIDE QUESTS';document.body.appendChild(tag);
+
+function loadSave(){try{return JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')}catch{return{}}}
+function loadV5(){try{return JSON.parse(localStorage.getItem(V5_KEY)||'{}')}catch{return{}}}
+function saveV5(v){localStorage.setItem(V5_KEY,JSON.stringify(v))}
+function modalParts(){return {modal:app?.querySelector('.modal'),panel:app?.querySelector('.panel')}}
+function openOwn(html){const {modal,panel}=modalParts();if(!modal||!panel)return;panel.innerHTML=html;modal.classList.add('open')}
+function closeOwn(){modalParts().modal?.classList.remove('open')}
+function zoneName(){return app?.querySelector('.zone')?.textContent?.trim()||''}
+function toast(text){let el=app.querySelector('.v5-toast');if(!el){el=document.createElement('div');el.className='v5-toast';app.querySelector('#game')?.appendChild(el)}el.textContent=text;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1400)}
+
+const interiors={
+ 'Springleaf Village':{title:'Springleaf Incubator Centre',desc:'A warm community centre where eggs are painted, powered and hatched.',objects:[['🛏️','Rest Area',18,66],['🥚','Incubator',50,38],['📚','Learning Shelf',80,65]],service:'incubator'},
+ 'Mossmere Town':{title:'Mossmere Workshop',desc:'Engineer Moss stores bridge plans, tools and recovered Rootway crystals here.',objects:[['🧰','Tools',20,66],['📐','Plans',50,35],['💎','Crystal Bench',80,66]],service:'workshop'},
+ 'Canopy City':{title:'Canopy Collection Hall',desc:'Researchers record every species, habitat, rarity and evolution discovered in Verdara.',objects:[['📚','Field Guide',20,62],['🏛️','Archive',50,34],['🔬','Research',80,62]],service:'dex'},
+ 'The Canopy Trial':{title:'Canopy Trial Antechamber',desc:'Challengers prepare their team before entering the three learning rooms.',objects:[['🏆','Badges',18,58],['🚪','Trial Gate',50,30],['❤️','Team Rest',82,58]],service:'trial'}
+};
+
+const quests=[
+ {id:'meadow_samples',title:'Sunpetal Sample Survey',text:'Discover two eggs in Sunpetal Meadow.',check:s=>(s.eggs?.length||0)+(s.collection?.length||0)>=2,reward:'30 coins'},
+ {id:'forest_records',title:'Whisperwood Ranger Notes',text:'Complete the forest route puzzle and defeat a forest trainer.',check:s=>Boolean(s.flags?.forestPuzzle)&&(s.trainers||0)>=2,reward:'40 coins'},
+ {id:'cave_research',title:'Rootway Crystal Research',text:'Collect all three bridge crystals.',check:s=>(s.bridgeParts||0)>=3,reward:'50 coins'},
+ {id:'hatch_three',title:'Young Researcher',text:'Hatch three monsters for the Verdara field guide.',check:s=>(s.collection?.length||0)>=3,reward:'Rare research egg'},
+ {id:'bridge_witness',title:'Witness the Restoration',text:'Complete all four Broken Span repair stages.',check:s=>(s.bridgeStage||0)>=4,reward:'75 coins'}
+];
+
+function ensureTools(){const game=app?.querySelector('#game');if(!game||game.querySelector('.v5-tools'))return;const tools=document.createElement('div');tools.className='v5-tools';tools.innerHTML='<button data-inside>INTERIOR</button><button data-side>SIDES</button><button data-dex>FIELD GUIDE</button>';game.appendChild(tools);tools.querySelector('[data-inside]').onclick=showInterior;tools.querySelector('[data-side]').onclick=showSideQuests;tools.querySelector('[data-dex]').onclick=showDex}
+
+function showInterior(){const z=zoneName(),data=interiors[z];if(!data){openOwn(`<h2>No public interior here yet</h2><p>${z} is an outdoor habitat or travel route. Town interiors will expand as the country is built.</p><button data-close>CLOSE</button>`);modalParts().panel.querySelector('[data-close]').onclick=closeOwn;return}openOwn(`<h2>${data.title}</h2><p>${data.desc}</p><div class="interiorMap"><div class="interiorFloor"></div><div class="interiorWall" style="left:8%;right:8%;top:8%;height:22%"></div>${data.objects.map(([icon,label,x,y])=>`<button class="interiorObject" data-service="${label}" style="left:${x}%;top:${y}%">${icon}<small>${label}</small></button>`).join('')}</div><button data-close>LEAVE BUILDING</button>`);modalParts().panel.querySelectorAll('[data-service]').forEach(b=>b.onclick=()=>interiorService(data.service,b.dataset.service));modalParts().panel.querySelector('[data-close]').onclick=closeOwn}
+
+function interiorService(type,label){const s=loadSave();if(type==='incubator'){toast('Use the outdoor Incubator interaction to paint and hatch eggs.');return}if(type==='workshop'){openOwn(`<h2>Mossmere Bridge Workshop</h2><p>Crystals: ${s.bridgeParts||0}/3</p><p>Construction stages: ${s.bridgeStage||0}/4</p><p>Engineer Moss records each completed measurement, material, reading and calibration challenge.</p><button data-back>BACK</button>`)}else if(type==='dex')return showDex();else if(type==='trial'){openOwn(`<h2>Trial Preparation</h2><p>Level ${s.level||1}/5 · Trainers ${s.trainers||0}/4 · Bridge ${s.bridgeStage||0}/4</p><p>Active companion: ${s.collection?.find(m=>m.uid===s.activeUid)?.nickname||'none selected'}</p><button data-back>BACK</button>`)}modalParts().panel.querySelector('[data-back]')?.addEventListener('click',showInterior)}
+
+function showSideQuests(){const s=loadSave(),v=loadV5();v.claimed=v.claimed||{};const rows=quests.map(q=>{const ready=q.check(s),claimed=v.claimed[q.id];return `<div class="sideQuest ${claimed?'complete':''}"><b>${claimed?'✅':ready?'⭐':'⬜'} ${q.title}</b><p>${q.text}</p><small>Reward: ${q.reward}</small>${ready&&!claimed?`<button data-claim="${q.id}">CLAIM REWARD</button>`:''}</div>`}).join('');openOwn(`<h2>Verdara Side Quests</h2><p>Optional discoveries reward exploration without blocking the country story.</p>${rows}<button data-close>CLOSE</button>`);modalParts().panel.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>claimQuest(b.dataset.claim));modalParts().panel.querySelector('[data-close]').onclick=closeOwn}
+
+function claimQuest(id){const s=loadSave(),v=loadV5(),q=quests.find(x=>x.id===id);v.claimed=v.claimed||{};if(!q||v.claimed[id]||!q.check(s))return;v.claimed[id]=true;if(id==='hatch_three'){s.eggs=s.eggs||[];s.eggs.push({id:`research-${Date.now()}`,name:'Research Egg',rarity:'rare',familyId:'starlight'});localStorage.setItem(SAVE_KEY,JSON.stringify(s))}else{const amount={meadow_samples:30,forest_records:40,cave_research:50,bridge_witness:75}[id]||25;s.coins=(s.coins||0)+amount;localStorage.setItem(SAVE_KEY,JSON.stringify(s))}saveV5(v);toast(`${q.title} complete`);showSideQuests()}
+
+function showDex(){const s=loadSave(),collection=s.collection||[],active=collection.find(m=>m.uid===s.activeUid)||collection[0];openOwn(`<h2>Verdara Field Guide</h2>${active?`<div class="companionPanel"><div class="companionIcon">${active.isGold?'✨':'🐾'}</div><div><b>Active: ${active.nickname||'Companion'}</b><br>${active.rarity||'common'} · Evolution stage ${active.stage||1}<br>Hatched from ${active.eggName||'a Verdara egg'}</div></div>`:'<p>No monster entries yet. Hatch an egg at an incubator.</p>'}<p><b>${collection.length}</b> monsters recorded · <b>${s.eggs?.length||0}</b> eggs waiting</p><div class="dexGrid">${collection.map((m,i)=>`<div class="dexCard"><b>#${String(i+1).padStart(3,'0')} ${m.nickname||'Unknown'}</b><br>${m.rarity||'common'}${m.isGold?' · GOLD':''}<br>Stage ${m.stage||1}<br><small>${m.eggName||'Unknown egg origin'}</small></div>`).join('')}</div><button data-close>CLOSE</button>`);modalParts().panel.querySelector('[data-close]').onclick=closeOwn}
+
+function observe(){ensureTools();const target=app?.querySelector('.zone');if(!target)return;new MutationObserver(()=>ensureTools()).observe(target,{childList:true,characterData:true,subtree:true})}
+let tries=0;const boot=setInterval(()=>{tries++;if(app?.querySelector('#game')){clearInterval(boot);observe()}else if(tries>120)clearInterval(boot)},100);
