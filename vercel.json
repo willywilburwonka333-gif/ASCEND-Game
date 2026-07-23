@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/teacher",
+      "destination": "/teacher-demo.html"
+    }
+  ],
   "headers": [
     {
       "source": "/",
@@ -12,6 +18,15 @@
     },
     {
       "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/teacher",
       "headers": [
         {
           "key": "Cache-Control",
